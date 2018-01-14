@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-
+#Chris Smith
 #Chat client with TLS
 
-import socket, sys, threading, ssl
+import socket, sys, threading, ssl, pprint
 
 PORT = 9999
 
@@ -21,6 +21,9 @@ class ChatClient(threading.Thread):
                            cert_reqs=ssl.CERT_REQUIRED)
 
         self.ssl_sock.connect((self.host, port))
+        print(repr(self.ssl_sock.getpeername()))
+        print(self.ssl_sock.cipher())
+        print(pprint.pformat(self.ssl_sock.getpeercert()))
 
 
     def send_message(self, msg):
