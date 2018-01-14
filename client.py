@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-#Chris Smith
 #Chat client with TLS
 
 import socket, sys, threading, ssl, pprint
