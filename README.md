@@ -7,3 +7,8 @@ python3 with barebones tls
 # openssl rsa -in server.orig.key -out server.key
 # openssl req -new -key server.key -out server.csr
 # openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+To use:
+Setup a server.crt and server.key
+Edit the server.py host and port values. host = 'localhost' will only work for testing on the same computer.
+Launch server.py, then start client.py
