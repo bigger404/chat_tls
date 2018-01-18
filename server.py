@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 #Chat server with TLS
 
 # Setup the key and certificate:
@@ -10,12 +9,12 @@
 
 import socket, sys, threading, ssl
 
-class YackServer(threading.Thread):
-    def __init__(self):
+class Server(threading.Thread):
+    def __init__(self, host, port):
         threading.Thread.__init__(self)
         self.MAX_Threads = 25
-        self.port = 9999
-        self.host = 'localhost'
+        self.port = int(port)
+        self.host = host
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.users = {}
 
@@ -28,6 +27,8 @@ class YackServer(threading.Thread):
         self.server.listen(self.MAX_Threads)
 
     def broadcast (self, username, msg):
+        if msg==".exit":
+            self.users[username].write(bytes(msg, 'utf-8'))
         for user in self.users:
             if (user is not username):
                 try:
@@ -43,31 +44,19 @@ class YackServer(threading.Thread):
             try:
                 data = enc_stream.read(1024)
                 msg = data.decode('utf-8')
-                #print("debug")
-                #print(msg)
-                if (msg[:5] == ".exit"):
-                    self.broadcast("User "+username+" has quit.")
-                    print("User "+username+" has quit.")
-                    self.users[username].write(bytes(".exit",'utf-8'))
-                    self.users.remove(username)
-                    enc_stream.close()
-                    return
                 self.broadcast(username, data.decode('utf-8'))
                 print(username + ": " + data.decode('utf-8')) 
             except:
-                self.broadcast(username, username+"(%s, %s) is offline\n" % addr)
+                self.broadcast(username, username+"(%s, %s) has quit!\n" % addr)
                 enc_stream.close()
-                del self.users[username]
+                self.users.pop(username)                
                 return
 
     def run(self):
         print('Listening on port %s' % (self.port))
         while True:
             conn, addr = self.server.accept()
-            enc_stream = ssl.wrap_socket(conn,
-                                 server_side=True,
-                                 certfile="server.crt",
-                                 keyfile="server.key")
+            enc_stream = ssl.wrap_socket(conn, server_side=True, certfile="server.crt", keyfile="server.key")
             data = enc_stream.read(1024)
             username = data.decode('utf-8')
             if (username not in self.users):
@@ -80,6 +69,7 @@ class YackServer(threading.Thread):
 
 
 if __name__ == '__main__':
-
-    server = YackServer()
+    host = 'localhost'
+    port = '9999'
+    server = Server(host,port)
     server.run()
