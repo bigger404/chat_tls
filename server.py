@@ -27,16 +27,40 @@ class Server(threading.Thread):
         self.server.listen(self.MAX_Threads)
 
     def broadcast (self, username, msg):
-        if msg==".exit":
+        if msg == '.exit':
             self.users[username].write(bytes(msg, 'utf-8'))
+        elif msg == '.users':
+            self.list_users(username)
+        else:
+            for user in self.users:
+                if (user is not username):
+                    try:
+                        self.users[user].write(bytes(username+": "+msg,'utf-8'))
+                    except:
+                        enc_stream.close()
+                        if enc_stream in self.users:
+                            self.users.remove(enc_stream)
+                            
+    def msg_all (self, username, msg):
         for user in self.users:
-            if (user is not username):
-                try:
-                    self.users[user].write(bytes(username+": "+msg,'utf-8'))
-                except:
-                    enc_stream.close()
-                    if enc_stream in self.users:
-                        self.users.remove(enc_stream)
+                if (user is not username):
+                    try:
+                        self.users[user].write(bytes(msg,'utf-8'))
+                    except:
+                        enc_stream.close()
+                        if enc_stream in self.users:
+                            self.users.remove(enc_stream)
+                            
+    def list_users (self, username):
+        list = "UserList:"
+        for user in self.users:
+            list = list + " " + user
+        try:
+            self.users[username].write(bytes(list,'utf-8'))
+        except:
+            enc_stream.close()
+            if enc_stream in self.users:
+                self.users.remove(enc_stream)
 
     def run_thread(self, username, enc_stream, addr):
         print(str(datetime.datetime.now()).split('.')[0] + ' '+ username + ' connected from ' + addr[0] + ':' + str(addr[1]))
@@ -47,7 +71,8 @@ class Server(threading.Thread):
                 self.broadcast(username, data.decode('utf-8'))
                 print(username + ": " + data.decode('utf-8')) 
             except:
-                self.broadcast(username, username+"(%s, %s) has quit!\n" % addr)
+                #self.broadcast(username, username+"(%s, %s) has quit!\n" % addr)
+                self.msg_all(username, username+"(%s, %s) has quit!\n" % addr)
                 enc_stream.close()
                 self.users.pop(username)                
                 return
