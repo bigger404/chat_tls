@@ -7,7 +7,7 @@
 # openssl req -new -key server.key -out server.csr
 # openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 
-import socket, sys, threading, ssl
+import socket, sys, threading, ssl, os, datetime
 
 class Server(threading.Thread):
     def __init__(self, host, port):
@@ -39,7 +39,7 @@ class Server(threading.Thread):
                         self.users.remove(enc_stream)
 
     def run_thread(self, username, enc_stream, addr):
-        print('Client connected with ' + addr[0] + ':' + str(addr[1]))
+        print(str(datetime.datetime.now()).split('.')[0] + ' '+ username + ' connected from ' + addr[0] + ':' + str(addr[1]))
         while True:
             try:
                 data = enc_stream.read(1024)
@@ -55,21 +55,24 @@ class Server(threading.Thread):
     def run(self):
         print('Listening on port %s' % (self.port))
         while True:
-            conn, addr = self.server.accept()
-            enc_stream = ssl.wrap_socket(conn, server_side=True, certfile="server.crt", keyfile="server.key")
-            data = enc_stream.read(1024)
-            username = data.decode('utf-8')
-            if (username not in self.users):
-                self.users[username] = enc_stream
-                print(username, "connected")
-                threading.Thread(target=self.run_thread, args=(username, enc_stream, addr)).start()
-            else:
-                enc_stream.write(bytes(username+" not available. Please try again.",'utf-8'))
-                enc_stream.close()
-
+            try:
+                conn, addr = self.server.accept()
+                enc_stream = ssl.wrap_socket(conn, server_side=True, certfile="server.crt", keyfile="server.key")
+                data = enc_stream.read(1024)
+                username = data.decode('utf-8')
+                if (username not in self.users and username != '.exit'):
+                    self.users[username] = enc_stream
+                    #print(username, "connected")
+                    threading.Thread(target=self.run_thread, args=(username, enc_stream, addr)).start()
+                else:
+                    enc_stream.write(bytes(username+" not available. Please try again.",'utf-8'))
+                    enc_stream.close()
+            except Exception as e:
+                print('Error %s' % (e))
 
 if __name__ == '__main__':
     host = 'localhost'
     port = '9999'
+    os.system('clear')
     server = Server(host,port)
     server.run()
