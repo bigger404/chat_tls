@@ -29,7 +29,10 @@ class ChatClient(threading.Thread):
                 data = self.ssl_sock.read(1024)
                 if data:
                     msg = data.decode('utf-8')
-                    if msg.find('.exit') == -1: print(msg)
+                    #if msg.find('.exit') == -1: print(msg)
+                    #if msg.split(' ')[1] !='.exit':
+                    #    print(msg)
+                    print(msg)
             except:
                 return
 
@@ -38,7 +41,7 @@ class ChatClient(threading.Thread):
             print("Server Certificate OK")
             while self.username == '':
                 self.username = input("Username: ")
-            print(".exit to quit")
+            print(".exit to quit\n.users for userlist")
             data = bytes(self.username, 'utf-8')
             self.ssl_sock.write(data)
             threading.Thread(target=self.ReceiveMessage).start()        
