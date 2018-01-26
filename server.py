@@ -41,7 +41,7 @@ class Server(threading.Thread):
                         if enc_stream in self.users:
                             self.users.remove(enc_stream)
                             
-    def msg_all (self, username, msg):
+    def msg_all (self, username, msg):#message all but username
         for user in self.users:
                 if (user is not username):
                     try:
@@ -52,7 +52,7 @@ class Server(threading.Thread):
                             self.users.remove(enc_stream)
                             
     def list_users (self, username):
-        list = "UserList:"
+        list = "**UserList:"
         for user in self.users:
             list = list + " " + user
         try:
@@ -72,7 +72,7 @@ class Server(threading.Thread):
                 print(username + ": " + data.decode('utf-8')) 
             except:
                 #self.broadcast(username, username+"(%s, %s) has quit!\n" % addr)
-                self.msg_all(username, username+"(%s, %s) has quit!\n" % addr)
+                self.msg_all(username, "**"+username+"(%s, %s) has quit!" % addr)
                 enc_stream.close()
                 self.users.pop(username)                
                 return
@@ -88,9 +88,10 @@ class Server(threading.Thread):
                 if (username not in self.users and username != '.exit'):
                     self.users[username] = enc_stream
                     #print(username, "connected")
+                    self.msg_all(username,"**"+username+" has joined.")
                     threading.Thread(target=self.run_thread, args=(username, enc_stream, addr)).start()
                 else:
-                    enc_stream.write(bytes(username+" not available. Please try again.",'utf-8'))
+                    enc_stream.write(bytes("**"+username+" not available. Please try again.",'utf-8'))
                     enc_stream.close()
             except Exception as e:
                 print('Error %s' % (e))
